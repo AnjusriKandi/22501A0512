@@ -10,6 +10,10 @@ app.use((req, res, next) => {
   Log("backend", "info", "middleware", `Incoming ${req.method} to ${req.url}`);
   next();
 });
+
+//database
+let db={};
+
 //Creates Short URL
 app.post("/shorturls", (req, res) => {
   let { url, validity, shortcode } = req.body;
@@ -28,7 +32,18 @@ app.post("/shorturls", (req, res) => {
   expiry.setDate(expiryDate.getDate() + validity);
   const shortLink = `http://localhost:${port}/${shortcode}`;
   Log("backend", "info", "shorturls", `Short URL created: ${shortLink}`);
+  db.collection("shorturls").insertOne({
+    url,
+    shortcode,
+    shortLink,
+    expiry,
+  });
   res.statusCode(201).send({ shortLink, expiry });
 });
 
 //Retrieve short URL statistics
+app.get("/shorturls/:shortcode", (req, res) => {
+    const shortcode = req.params.shortcode;
+    const temp=db.findOne({shortcode});
+    res.statusCode(200).send(temp);
+});
